@@ -392,7 +392,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@gemeentenijmegen/projen-project-type,@types/jest,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@gemeentenijmegen/aws-constructs"
+            "--filter=@types/jest,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@gemeentenijmegen/aws-constructs,@gemeentenijmegen/projen-project-type"
           ]
         },
         {
@@ -402,7 +402,6 @@
           "execArgs": [
             "npm",
             "update",
-            "@gemeentenijmegen/projen-project-type",
             "@stylistic/eslint-plugin",
             "@types/jest",
             "@types/node",
@@ -421,6 +420,7 @@
             "ts-node",
             "typescript",
             "@gemeentenijmegen/aws-constructs",
+            "@gemeentenijmegen/projen-project-type",
             "aws-cdk-lib",
             "constructs"
           ]

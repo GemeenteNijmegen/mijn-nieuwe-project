@@ -1,11 +1,15 @@
 import { App, Stack, StackProps } from 'aws-cdk-lib';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
+/**
+ * Example stack for the AWS CDK project.
+ */
 export class MyStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
 
-    // define resources here...
+    new Bucket(this, 'my-first-bucket-indy');
   }
 }
 
