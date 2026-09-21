@@ -1,27 +1,32 @@
-import { App, Stack, StackProps } from 'aws-cdk-lib';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
-
-/**
- * Example stack for the AWS CDK project.
- */
-export class MyStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
-    super(scope, id, props);
-
-    new Bucket(this, 'my-first-bucket-indy');
-  }
-}
-
-// for development, use account/region from cdk cli
-const devEnv = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION,
-};
+import { App } from 'aws-cdk-lib';
+import { getEnvironmentConfiguration } from './Configuration';
+import { PipelineStack } from './PipelineStack';
+import { SandboxPortalStack } from './SandboxPortalStack';
 
 const app = new App();
 
-new MyStack(app, 'mijn-nieuwe-project-dev', { env: devEnv });
-// new MyStack(app, 'mijn-nieuwe-project-prod', { env: prodEnv });
+const branchToBuild = process.env.BRANCH_NAME ?? 'development';
+const configuration = getEnvironmentConfiguration(branchToBuild);
+
+/**
+ * Manual deploy target for the learning app: `npx cdk deploy
+ * SandboxPortalStack`. This talks directly to the sandbox account and
+ * skips the CodePipeline entirely - fast to iterate on while we're
+ * still building things by hand. See SandboxPortalStack.ts.
+ */
+new SandboxPortalStack(app, 'SandboxPortalStack', {
+  env: configuration.deploymentEnvironment,
+  configuration,
+});
+
+/**
+ * The existing CI/CD pipeline stack. Not used yet - we'll hook the
+ * SandboxPortalStack into it as a pipeline stage once the manually
+ * deployed version works end-to-end (see the project README).
+ */
+new PipelineStack(app, configuration.pipelineStackCdkName, {
+  env: configuration.buildEnvironment,
+  configuration,
+});
 
 app.synth();

@@ -3,6 +3,7 @@ import { javascript } from 'projen';
 const project = new GemeenteNijmegenCdkApp({
   cdkVersion: '2.189.1',
   deps: ['@gemeentenijmegen/projen-project-type'],
+  devDeps: ['@types/aws-lambda'],
   name: 'mijn-nieuwe-project',
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
