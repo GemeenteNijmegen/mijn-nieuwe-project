@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+</head>
+<body>
+  <header>
+    <h1>{{title}}</h1>
+    <p>{{tagline}}</p>
+  </header>
+  <main>
+    <p>{{#name}}Hello {{name}}!{{/name}}{{^name}}Hello stranger!{{/name}}</p>
+    <p>{{greeting}}</p>
+    <p>
+      This is a <strong>learning application</strong>. Everything you see here is mock
+      data - it is not connected to any real municipal, <b>citizen</b>,
+      registration, payment, or benefits system.
+    </p>
+    <nav>
+      <ul>
+        <li><a href="/health">/health</a> - health check endpoint</li>
+        <li><a href="/version">/version</a> - version endpoint</li>
+      </ul>
+    </nav>
+  </main>
+  <footer>
+    <p>Rendered server-side by an AWS Lambda function at {{renderedAt}}.</p>
+  </footer>
+</body>
+</html>

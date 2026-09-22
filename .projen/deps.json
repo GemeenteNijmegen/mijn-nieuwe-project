@@ -14,6 +14,10 @@
       "type": "build"
     },
     {
+      "name": "@types/mustache",
+      "type": "build"
+    },
+    {
       "name": "@types/node",
       "type": "build"
     },
@@ -95,6 +99,10 @@
     {
       "name": "constructs",
       "version": "^10.5.1",
+      "type": "runtime"
+    },
+    {
+      "name": "mustache",
       "type": "runtime"
     }
   ],

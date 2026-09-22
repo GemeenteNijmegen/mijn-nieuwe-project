@@ -2,8 +2,8 @@ import { GemeenteNijmegenCdkApp } from '@gemeentenijmegen/projen-project-type';
 import { javascript } from 'projen';
 const project = new GemeenteNijmegenCdkApp({
   cdkVersion: '2.189.1',
-  deps: ['@gemeentenijmegen/projen-project-type'],
-  devDeps: ['@types/aws-lambda'],
+  deps: ['@gemeentenijmegen/projen-project-type', 'mustache'],
+  devDeps: ['@types/aws-lambda', '@types/mustache'],
   name: 'mijn-nieuwe-project',
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,

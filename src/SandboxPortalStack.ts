@@ -49,6 +49,9 @@ export class SandboxPortalStack extends Stack {
     const versionLogGroup = new LogGroup(this, 'version-logs', {
       retention: RetentionDays.THREE_DAYS,
     });
+    const homeLogGroup = new LogGroup(this, 'home-logs', {
+      retention: RetentionDays.THREE_DAYS,
+    });
 
     // NodejsFunction bundles this TypeScript file (and its dependencies)
     // into a single JavaScript file using esbuild, at `cdk synth` time.
@@ -77,6 +80,26 @@ export class SandboxPortalStack extends Stack {
       },
     });
 
+    // The home handler imports a `.mustache` file as a plain string. By
+    // default esbuild doesn't know what to do with a `.mustache`
+    // extension, so we tell it (via `bundling.loader`) to treat that
+    // extension as raw text and inline its contents into the bundled
+    // JS file at build time.
+    const homeLambda = new NodejsFunction(this, 'home-lambda', {
+      entry: `${__dirname}/lambda/home/index.ts`,
+      handler: 'handler',
+      runtime: Runtime.NODEJS_22_X,
+      memorySize: 256,
+      timeout: Duration.seconds(5),
+      logGroup: homeLogGroup,
+      environment: {
+        LOG_LEVEL: props.configuration.logLevel ?? 'INFO',
+      },
+      bundling: {
+        loader: { '.mustache': 'text' },
+      },
+    });
+
     // API Gateway HTTP API: a cheap, low-latency way to route HTTP
     // requests to Lambda functions. No servers to patch or scale -
     // AWS runs the routing layer for us ("serverless").
@@ -95,6 +118,12 @@ export class SandboxPortalStack extends Stack {
       path: '/version',
       methods: [HttpMethod.GET],
       integration: new HttpLambdaIntegration('version-integration', versionLambda),
+    });
+
+    httpApi.addRoutes({
+      path: '/home',
+      methods: [HttpMethod.GET],
+      integration: new HttpLambdaIntegration('home-integration', homeLambda),
     });
 
     new CfnOutput(this, 'api-url', {
