@@ -1,10 +1,12 @@
 import { PermissionsBoundaryAspect } from '@gemeentenijmegen/aws-constructs';
-import { Aspects, CfnOutput, Duration, Stack, StackProps, Tags } from 'aws-cdk-lib';
+import { Aspects, CfnOutput, Duration, RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib';
 import { HttpApi, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 import { Configurable } from './Configuration';
 import { Statics } from './Statics';
@@ -100,6 +102,41 @@ export class SandboxPortalStack extends Stack {
       },
     });
 
+    // Static assets (CSS, images) belong in S3, not in a Lambda. They
+    // don't change per-request, don't need any server-side logic to
+    // produce, and S3 serves them far cheaper and faster than paying
+    // for a Lambda invocation on every page load of a stylesheet.
+    //
+    // This bucket is kept private (BLOCK_ALL public access, SSL-only,
+    // encrypted) - it is not reachable from a browser yet. Making an S3
+    // bucket public is a common source of real-world data leaks, so we
+    // don't do that even for static assets. Once CloudFront is added in
+    // a later phase, it will read from this bucket privately (via an
+    // Origin Access Control) and be the thing browsers actually talk
+    // to - the same CloudFront distribution will also sit in front of
+    // the HTTP API, so static and dynamic content end up on one domain.
+    const staticAssetsBucket = new Bucket(this, 'static-assets', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      // Sandbox/learning defaults: let `cdk destroy` fully remove this
+      // bucket (including its contents) instead of leaving an empty
+      // bucket behind forever, which is what CDK does by default
+      // (RemovalPolicy.RETAIN) to protect real data.
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    // Uploads everything in the repo's static/ folder to the bucket
+    // at deploy time. Under the hood this provisions a temporary,
+    // deploy-time-only Lambda (a CDK "custom resource") that does the
+    // upload - the same bundling machinery as NodejsFunction, just
+    // packaging a folder of assets instead of a handler.
+    new BucketDeployment(this, 'static-assets-deployment', {
+      destinationBucket: staticAssetsBucket,
+      sources: [Source.asset(`${__dirname}/../static`)],
+    });
+
     // API Gateway HTTP API: a cheap, low-latency way to route HTTP
     // requests to Lambda functions. No servers to patch or scale -
     // AWS runs the routing layer for us ("serverless").
@@ -129,6 +166,11 @@ export class SandboxPortalStack extends Stack {
     new CfnOutput(this, 'api-url', {
       value: httpApi.apiEndpoint,
       description: 'Base URL of the HTTP API (try appending /health)',
+    });
+
+    new CfnOutput(this, 'static-assets-bucket-name', {
+      value: staticAssetsBucket.bucketName,
+      description: 'S3 bucket holding static assets (private - not browser-reachable yet)',
     });
   }
 }
