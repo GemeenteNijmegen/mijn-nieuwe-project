@@ -1,4 +1,5 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
+import { Statics } from '../Statics';
 
 /**
  * Version check handler
@@ -18,7 +19,7 @@ export async function handler(
     statusCode: 200,
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      version: 'v0.0.1',
+      version: Statics.appVersion,
       timestamp: new Date().toISOString(),
     }),
   };

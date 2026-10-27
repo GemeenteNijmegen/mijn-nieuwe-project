@@ -47,19 +47,26 @@ export class SandboxPortalStack extends Stack {
     // scale) for a learning project.
     const healthLogGroup = new LogGroup(this, 'health-logs', {
       retention: RetentionDays.THREE_DAYS,
+      // Sandbox/learning defaults: let `cdk destroy` fully remove this
+      // log group instead of leaving an empty log group behind forever,
+      // which is what CDK does by default (RemovalPolicy.RETAIN) to
+      // protect real logs.
+      removalPolicy: RemovalPolicy.DESTROY,
     });
     const versionLogGroup = new LogGroup(this, 'version-logs', {
       retention: RetentionDays.THREE_DAYS,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
     const homeLogGroup = new LogGroup(this, 'home-logs', {
       retention: RetentionDays.THREE_DAYS,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     // NodejsFunction bundles this TypeScript file (and its dependencies)
     // into a single JavaScript file using esbuild, at `cdk synth` time.
     // No manual `tsc` build step and no Docker required.
     const healthLambda = new NodejsFunction(this, 'health-lambda', {
-      entry: `${__dirname}/lambda/health/index.ts`,
+      entry: `${__dirname}/health/index.ts`,
       handler: 'handler',
       runtime: Runtime.NODEJS_22_X,
       memorySize: 256,
@@ -71,7 +78,7 @@ export class SandboxPortalStack extends Stack {
     });
 
     const versionLambda = new NodejsFunction(this, 'version-lambda', {
-      entry: `${__dirname}/lambda/version/index.ts`,
+      entry: `${__dirname}/version/index.ts`,
       handler: 'handler',
       runtime: Runtime.NODEJS_22_X,
       memorySize: 256,
@@ -88,7 +95,7 @@ export class SandboxPortalStack extends Stack {
     // extension as raw text and inline its contents into the bundled
     // JS file at build time.
     const homeLambda = new NodejsFunction(this, 'home-lambda', {
-      entry: `${__dirname}/lambda/home/index.ts`,
+      entry: `${__dirname}/home/index.ts`,
       handler: 'handler',
       runtime: Runtime.NODEJS_22_X,
       memorySize: 256,
@@ -134,7 +141,12 @@ export class SandboxPortalStack extends Stack {
     // packaging a folder of assets instead of a handler.
     new BucketDeployment(this, 'static-assets-deployment', {
       destinationBucket: staticAssetsBucket,
+      destinationKeyPrefix: 'static/', // optional prefix in the bucket
       sources: [Source.asset(`${__dirname}/../static`)],
+      logGroup: new LogGroup(this, 'static-assets-deployment-logs', {
+        retention: RetentionDays.THREE_DAYS,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
     });
 
     // API Gateway HTTP API: a cheap, low-latency way to route HTTP

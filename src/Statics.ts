@@ -12,4 +12,6 @@ export abstract class Statics {
     account: '956966432757',
     region: 'eu-central-1',
   };
+
+  static readonly appVersion: string = '0.1.0';
 }

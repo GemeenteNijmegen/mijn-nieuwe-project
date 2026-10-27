@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import Mustache from 'mustache';
-import homeTemplate from '../../../templates/home.mustache';
+import homeTemplate from '../../templates/home.mustache';
 
 /**
  * Server-side rendering: instead of returning JSON for a frontend
@@ -25,7 +25,7 @@ export async function handler(
     title: 'Mijn Sandbox Portal',
     name: 'Indy',
     tagline: 'A learning project for Gemeente Nijmegen developers',
-    greeting: 'Welcome! You are viewing a page rendered by a <strong>Lambda function</strong>.',
+    greeting: 'Welcome! You are viewing a page rendered by a Lambda function.',
     renderedAt: new Date().toISOString(),
   });
 
