@@ -10,6 +10,7 @@ import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 import { Configurable } from './Configuration';
 import { Statics } from './Statics';
+import { SessionsTable } from './SessionsTable';
 
 export interface SandboxPortalStackProps extends StackProps, Configurable { }
 
@@ -61,6 +62,8 @@ export class SandboxPortalStack extends Stack {
       retention: RetentionDays.THREE_DAYS,
       removalPolicy: RemovalPolicy.DESTROY,
     });
+
+    const sessionsTable = new SessionsTable(this, 'sessions');
 
     // NodejsFunction bundles this TypeScript file (and its dependencies)
     // into a single JavaScript file using esbuild, at `cdk synth` time.
@@ -160,13 +163,13 @@ export class SandboxPortalStack extends Stack {
 
     // `/` and `/home` share one integration: the home handler redirects
     // `/` to `/home`, so there's only one URL per page.
-    // const homeIntegration = new HttpLambdaIntegration('home-integration', homeLambda);
+    const homeIntegration = new HttpLambdaIntegration('home-integration', homeLambda);
 
-    // httpApi.addRoutes({
-    //   path: '/',
-    //   methods: [HttpMethod.GET],
-    //   integration: homeIntegration,
-    // });
+    httpApi.addRoutes({
+      path: '/',
+      methods: [HttpMethod.GET],
+      integration: homeIntegration,
+    });
 
     httpApi.addRoutes({
       path: '/health',
@@ -183,7 +186,7 @@ export class SandboxPortalStack extends Stack {
     httpApi.addRoutes({
       path: '/home',
       methods: [HttpMethod.GET],
-      integration: new HttpLambdaIntegration('home-integration', homeLambda),
+      integration: homeIntegration,
     });
 
     new CfnOutput(this, 'api-url', {
@@ -195,5 +198,7 @@ export class SandboxPortalStack extends Stack {
       value: staticAssetsBucket.bucketName,
       description: 'S3 bucket holding static assets (private - not browser-reachable yet)',
     });
+
+
   }
 }
