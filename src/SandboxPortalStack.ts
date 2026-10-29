@@ -86,6 +86,7 @@ export class SandboxPortalStack extends Stack {
       logGroup: versionLogGroup,
       environment: {
         LOG_LEVEL: props.configuration.logLevel ?? 'INFO',
+        APP_VERSION: Statics.appVersion,
       },
     });
 
@@ -157,11 +158,15 @@ export class SandboxPortalStack extends Stack {
       description: 'Mijn Sandbox Portal HTTP API',
     });
 
-    httpApi.addRoutes({
-      path: '/',
-      methods: [HttpMethod.GET],
-      integration: new HttpLambdaIntegration('home-integration', homeLambda),
-    });
+    // `/` and `/home` share one integration: the home handler redirects
+    // `/` to `/home`, so there's only one URL per page.
+    // const homeIntegration = new HttpLambdaIntegration('home-integration', homeLambda);
+
+    // httpApi.addRoutes({
+    //   path: '/',
+    //   methods: [HttpMethod.GET],
+    //   integration: homeIntegration,
+    // });
 
     httpApi.addRoutes({
       path: '/health',

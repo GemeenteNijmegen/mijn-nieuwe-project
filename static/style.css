@@ -44,3 +44,9 @@ footer {
   font-size: 0.875rem;
   border-top: 1px solid var(--border);
 }
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

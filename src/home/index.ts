@@ -22,12 +22,20 @@ export async function handler(
     requestId: event.requestContext.requestId,
   }));
 
+  // `/` is an alias: redirect so every page has exactly one URL.
+  if (event.rawPath === '/') {
+    return {
+      statusCode: 302,
+      headers: { location: '/home' },
+      body: '',
+    };
+  }
+
   const html = render(homeTemplate, {
     title: 'Mijn Sandbox Portal',
     name: 'Indy',
     tagline: 'A learning project for Gemeente Nijmegen developers',
     greeting: 'Welcome! You are viewing a page rendered by a Lambda function.',
-    renderedAt: new Date().toISOString(),
   });
 
   return {

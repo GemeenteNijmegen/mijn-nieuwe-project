@@ -3,5 +3,4 @@ Allow: /home
 Allow: /static/
 Disallow: /login
 Disallow: /logout
-Disallow: /tasks
-Disallow: /profile
+

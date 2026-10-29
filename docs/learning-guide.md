@@ -12,14 +12,31 @@ A step-by-step guide to building a small, cheap AWS app that uses the same core 
 
 ## 0. Where you are now
 
-Here's what you've built so far (commits `8fd6f78` → `d12981d`):
+Here's what you've built so far (commits `8fd6f78` → `e0f3a99`, plus the review fixes from 2026-10-29):
 
 | Phase | Status | Where |
 |---|---|---|
 | 1. TypeScript + CDK project | ✅ projen `GemeenteNijmegenCdkApp` | `.projenrc.ts`, `src/main.ts` |
-| 2. Health-check Lambda + HTTP API | ✅ `/health`, `/version` | `src/health`, `src/version` |
-| 3. Server-rendered home page | ✅ Mustache, `/home` | `src/home`, `templates/home.mustache` |
-| 4. S3 static assets | 🟡 bucket + upload exist, but browsers can't reach them yet | `static/`, `src/SandboxPortalStack.ts` |
+| 2. Health-check Lambda + HTTP API | ✅ `/health`, `/version` (version from `APP_VERSION`) | `src/health`, `src/version` |
+| 3. Server-rendered pages + local server | ✅ `/` → `/home`, shared layout (header, nav, footer partials), `npx projen dev` | `src/home`, `src/app/render.ts`, `src/local/`, `templates/` |
+| 4. S3 static assets | ✅ bucket + upload under `static/`, logo in the header. Browsers reach them in phase 9 (CloudFront); locally they already work | `static/`, `src/SandboxPortalStack.ts` |
+
+### Phase 1–4 review (2026-10-29)
+
+Checked: `npx projen build` (synth + jest + eslint) passes, and the local server returns the right status and content type for `/`, `/home`, `/health`, `/version`, `/static/*` and an unknown path.
+
+Fixed during the review:
+- **`npx projen` hadn't run after editing `.projenrc.ts`.** So `.local/` wasn't in `.gitignore` yet (it would have been committed) and `npx projen dev` didn't exist. **Run `npx projen` after every `.projenrc.ts` change.**
+- **Exercise 1–2:** `/version` now reads `process.env.APP_VERSION`, which the stack sets from `Statics.appVersion`. Locally the server sets `APP_VERSION=local`.
+- **Exercise 3:** `GET /` now redirects (`302`) to `/home` instead of rendering the same page under two URLs. `/` and `/home` share one `HttpLambdaIntegration`, so the template has 3 integrations instead of 4. The nav menu is now the `templates/nav.mustache` partial, included from the header. The local server route table has `GET /` too.
+- **Exercise 4:** `static/logo.svg` added and shown in the header.
+- **`render()` fills in `renderedAt`**, because the footer needs it on every page and a new handler could forget it.
+- **`robots.txt`:** `/profile` → `/persoonsgegevens`, to match phase 7.
+
+Still to do yourself:
+- **Deploy and check.** Your SSO session had expired during the review, so the deployed state wasn't checked. Run `aws sso login --profile gn-sandbox-indy`, then `npx cdk diff SandboxPortalStack --profile gn-sandbox-indy`. If you haven't deployed since 2026-10-27, the diff still removes the old `sessions` table (0 items). Then deploy and finish exercise 4 with `aws s3 ls s3://<bucket>/static/ --profile gn-sandbox-indy`. You should see `logo.svg`.
+- **Commit** before deploying, so `git log` matches what runs in AWS.
+- **`robots.txt` is served at `/static/robots.txt`**, but crawlers only look at `/robots.txt`. Fix it in phase 9 with a CloudFront behavior for `/robots.txt`. Also remember that `Disallow` is a request to polite crawlers, not access control. It even lists your paths publicly.
 
 ### Fix these before you continue
 
@@ -131,9 +148,9 @@ npx cdk destroy SandboxPortalStack --profile gn-sandbox-indy
 ### Build next: a shared layout
 
 Every page needs the same `<head>`, header and footer. Use **Mustache partials**:
-- `templates/layout/header.mustache` and `templates/layout/footer.mustache`
-- render with `Mustache.render(pageTpl, view, { header: headerTpl, footer: footerTpl })`
-- include them in the page with `{{> header}}`
+- `templates/header.mustache`, `templates/nav.mustache` and `templates/footer.mustache`
+- render with `Mustache.render(pageTpl, view, { header: headerTpl, nav: navTpl, footer: footerTpl })`
+- include them in the page with `{{> header}}` (the header includes `{{> nav}}`)
 
 Put the render helper in `src/app/render.ts` so all handlers share it.
 

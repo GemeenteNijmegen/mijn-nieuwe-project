@@ -62,4 +62,5 @@ junit.xml
 !/.github/workflows/emergency.yml
 !/.github/workflows/auto-merge.yml
 !/.nvmrc
+.local/
 !/.projenrc.ts

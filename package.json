@@ -11,6 +11,7 @@
     "default": "projen default",
     "deploy": "projen deploy",
     "destroy": "projen destroy",
+    "dev": "projen dev",
     "diff": "projen diff",
     "eject": "projen eject",
     "eslint": "projen eslint",
