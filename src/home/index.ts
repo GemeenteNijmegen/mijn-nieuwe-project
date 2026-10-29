@@ -1,6 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
-import Mustache from 'mustache';
 import homeTemplate from '../../templates/home.mustache';
+import { render } from '../app/render';
+
 
 /**
  * Server-side rendering: instead of returning JSON for a frontend
@@ -21,7 +22,7 @@ export async function handler(
     requestId: event.requestContext.requestId,
   }));
 
-  const html = Mustache.render(homeTemplate, {
+  const html = render(homeTemplate, {
     title: 'Mijn Sandbox Portal',
     name: 'Indy',
     tagline: 'A learning project for Gemeente Nijmegen developers',

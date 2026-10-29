@@ -1,16 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{title}}</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-</head>
-<body>
-  <header>
-    <h1>{{title}}</h1>
-    <p>{{tagline}}</p>
-  </header>
+{{> header}}
   <main>
     <p>{{#name}}Hello {{name}}!{{/name}}{{^name}}Hello stranger!{{/name}}</p>
     <p>{{greeting}}</p>
@@ -26,8 +14,4 @@
       </ul>
     </nav>
   </main>
-  <footer>
-    <p>Rendered server-side by an AWS Lambda function at {{renderedAt}}.</p>
-  </footer>
-</body>
-</html>
+{{> footer}}

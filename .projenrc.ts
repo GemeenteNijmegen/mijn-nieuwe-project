@@ -13,4 +13,8 @@ const project = new GemeenteNijmegenCdkApp({
   // description: undefined,        /* The description is just a string that helps people understand the purpose of the package. */
   // packageName: undefined,        /* The "name" in package.json. */
 });
+project.gitignore.exclude('.local/');
+project.addTask('dev', {
+  exec: 'npx esbuild src/local/server.ts --bundle --platform=node --loader:.mustache=text --outfile=.local/server.js && node .local/server.js',
+});
 project.synth();

@@ -158,6 +158,12 @@ export class SandboxPortalStack extends Stack {
     });
 
     httpApi.addRoutes({
+      path: '/',
+      methods: [HttpMethod.GET],
+      integration: new HttpLambdaIntegration('home-integration', homeLambda),
+    });
+
+    httpApi.addRoutes({
       path: '/health',
       methods: [HttpMethod.GET],
       integration: new HttpLambdaIntegration('health-integration', healthLambda),
