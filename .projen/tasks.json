@@ -400,7 +400,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@types/aws-lambda,@types/jest,@types/mustache,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@gemeentenijmegen/aws-constructs,@gemeentenijmegen/projen-project-type,mustache"
+            "--filter=@types/aws-lambda,@types/jest,@types/mustache,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@aws-sdk/client-dynamodb,@aws-sdk/lib-dynamodb,@gemeentenijmegen/aws-constructs,@gemeentenijmegen/projen-project-type,mustache"
           ]
         },
         {
@@ -429,6 +429,8 @@
             "ts-jest",
             "ts-node",
             "typescript",
+            "@aws-sdk/client-dynamodb",
+            "@aws-sdk/lib-dynamodb",
             "@gemeentenijmegen/aws-constructs",
             "@gemeentenijmegen/projen-project-type",
             "aws-cdk-lib",

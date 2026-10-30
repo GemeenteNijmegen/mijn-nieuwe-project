@@ -2,6 +2,7 @@ import { PermissionsBoundaryAspect } from '@gemeentenijmegen/aws-constructs';
 import { Aspects, CfnOutput, Duration, RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib';
 import { HttpApi, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -9,8 +10,9 @@ import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3'
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 import { Configurable } from './Configuration';
-import { Statics } from './Statics';
+
 import { SessionsTable } from './SessionsTable';
+import { Statics } from './Statics';
 
 export interface SandboxPortalStackProps extends StackProps, Configurable { }
 
@@ -107,11 +109,17 @@ export class SandboxPortalStack extends Stack {
       logGroup: homeLogGroup,
       environment: {
         LOG_LEVEL: props.configuration.logLevel ?? 'INFO',
+        SESSIONS_TABLE_NAME: sessionsTable.table.tableName,
       },
       bundling: {
         loader: { '.mustache': 'text' },
       },
     });
+
+    homeLambda.addToRolePolicy(new PolicyStatement({
+      actions: ['dynamodb:GetItem'],
+      resources: [sessionsTable.table.tableArn],
+    }));
 
     // Static assets (CSS, images) belong in S3, not in a Lambda. They
     // don't change per-request, don't need any server-side logic to

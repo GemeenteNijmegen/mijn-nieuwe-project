@@ -14,4 +14,6 @@ export abstract class Statics {
   };
 
   static readonly appVersion: string = '0.1.0';
+
+  static readonly sessionTableName: string = 'sessions';
 }

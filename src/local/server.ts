@@ -23,10 +23,45 @@ const port = Number(process.env.PORT ?? 3000);
 // In AWS the stack sets these environment variables; locally we set
 // them ourselves so the handlers see the same configuration.
 process.env.APP_VERSION ??= 'local';
+process.env.SESSION_STORE_TYPE ??= 'in-memory';
+process.env.COOKIE_SECURE ??= 'false';
 
 // Resolved once at startup, relative to where you start the server
 // (the project root when you use `npx projen dev`).
 const staticRoot = path.resolve('static');
+
+
+createServer(async (req, res) => {
+  const urlPath = new URL(req.url ?? '/', 'http://localhost').pathname;
+
+  if (await serveStatic(urlPath, staticRoot, res)) {
+    return;
+  }
+
+  const route = routes[`${req.method} ${urlPath}`];
+  if (!route) {
+    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+    res.end('Not Found');
+    return;
+  }
+
+  try {
+    const body = await readBody(req);
+    const event = toEvent(req, body);
+    const selectedRoute = await route(event);
+    writeResponse(res, selectedRoute);
+  } catch (err) {
+    console.error(err);
+    res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
+    res.end('Internal Server Error');
+  }
+}).listen(port, () => console.log(`http://localhost:${port}`));
+
+async function readBody(req: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString('utf8');
+}
 
 function toEvent(req: IncomingMessage, body: string): APIGatewayProxyEventV2 {
   const url = new URL(req.url ?? '/', 'http://localhost');
@@ -61,38 +96,6 @@ function toEvent(req: IncomingMessage, body: string): APIGatewayProxyEventV2 {
     isBase64Encoded: false,
   } satisfies APIGatewayProxyEventV2;
 }
-
-async function readBody(req: IncomingMessage): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString('utf8');
-}
-
-createServer(async (req, res) => {
-  const urlPath = new URL(req.url ?? '/', 'http://localhost').pathname;
-
-  if (await serveStatic(urlPath, staticRoot, res)) {
-    return;
-  }
-
-  const route = routes[`${req.method} ${urlPath}`];
-  if (!route) {
-    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-    res.end('Not Found');
-    return;
-  }
-
-  try {
-    const body = await readBody(req);
-    const event = toEvent(req, body);
-    const selectedRoute = await route(event);
-    writeResponse(res, selectedRoute);
-  } catch (err) {
-    console.error(err);
-    res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
-    res.end('Internal Server Error');
-  }
-}).listen(port, () => console.log(`http://localhost:${port}`));
 
 function writeResponse(res: ServerResponse, result: APIGatewayProxyResultV2) {
   if (typeof result === 'string') {

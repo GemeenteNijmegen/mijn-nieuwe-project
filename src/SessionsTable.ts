@@ -1,5 +1,6 @@
-import { aws_dynamodb as DynamoDB, RemovalPolicy, StackProps } from 'aws-cdk-lib';
+import { aws_dynamodb as DynamoDB, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { Statics } from './Statics';
 
 
 /**
@@ -9,14 +10,14 @@ import { Construct } from 'constructs';
  * partition key and a 'expiresAt' attribute.
  */
 export class SessionsTable extends Construct {
-    table: DynamoDB.Table;
-    constructor(scope: Construct, id: string) {
-        super(scope, id);
-        this.table = new DynamoDB.Table(this, 'sessions', {
-            partitionKey: { name: 'sessionId', type: DynamoDB.AttributeType.STRING },
-            billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
-            timeToLiveAttribute: 'expiresAt',
-            removalPolicy: RemovalPolicy.DESTROY,
-        });
-    }
+  table: DynamoDB.Table;
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+    this.table = new DynamoDB.Table(this, Statics.sessionTableName, {
+      partitionKey: { name: 'sessionId', type: DynamoDB.AttributeType.STRING },
+      billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: 'expiresAt',
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+  }
 }
