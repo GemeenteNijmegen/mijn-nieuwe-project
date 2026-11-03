@@ -29,7 +29,7 @@ export class Cookie {
   }
 
   toString(): string {
-    let cookieString = `${this.name}=${this.value}; Path=${this.path}, SameSite=${this.sameSite}`;
+    let cookieString = `${this.name}=${this.value}; Path=${this.path}; SameSite=${this.sameSite}`;
     if (this.secure) {
       cookieString += '; Secure';
     }

@@ -11,7 +11,7 @@ export interface SessionServiceOptions {
 }
 
 const COOKIE_NAME = 'sessionId';
-const SESSION_ID_LENGTH = 64; // 32 bytes in base64url encoding
+const SESSION_ID_LENGTH = 43; // 32 bytes in base64url encoding
 const SESSION_ID_REGEX = /^[A-Za-z0-9_-]+$/;
 
 export class SessionService {
@@ -22,7 +22,6 @@ export class SessionService {
     this.store = sessionStore;
     this.options = options;
   }
-
 
   async create(userId: string): Promise<CreatedSession> {
     const now = this.now();
@@ -37,7 +36,7 @@ export class SessionService {
     };
 
     await this.store.put(session);
-    return { session, cookie: this.generateCookie(sessionId, this.options) };
+    return { session, cookie: this.generateCookie(sessionId) };
   }
 
   async load(cookies: string[] | undefined): Promise<Session | undefined> {
@@ -53,7 +52,9 @@ export class SessionService {
   }
 
   private async get(sessionId: string): Promise<Session | undefined> {
-    this.validateSessionId(sessionId);
+    if (!(sessionId.length === SESSION_ID_LENGTH && SESSION_ID_REGEX.test(sessionId))) {
+      return undefined;
+    }
     const session = await this.store.get(sessionId);
     if (session && session.expiresAt <= this.now()) {
       return undefined;
@@ -61,9 +62,9 @@ export class SessionService {
     return session;
   }
 
-  async destroy(sessionId: string, options: SessionServiceOptions): Promise<Cookie> {
+  async destroy(sessionId: string): Promise<Cookie> {
     await this.store.delete(sessionId);
-    const expiredCookie = new Cookie(COOKIE_NAME, '', { httpOnly: true, maxAge: 0, secure: options.cookieSecure, path: options.cookiePath });
+    const expiredCookie = new Cookie(COOKIE_NAME, '', { httpOnly: true, maxAge: 0, secure: this.options.cookieSecure, path: this.options.cookiePath });
     return expiredCookie;
   }
 
@@ -71,21 +72,16 @@ export class SessionService {
     return randomBytes(32).toString('base64url');
   }
 
-  private generateCookie(sessionId: string, options: SessionServiceOptions): Cookie {
+  private generateCookie(sessionId: string): Cookie {
     return new Cookie(COOKIE_NAME, sessionId, {
       httpOnly: true,
-      maxAge: options.ttlSeconds,
-      secure: options.cookieSecure,
-      path: options.cookiePath,
+      maxAge: this.options.ttlSeconds,
+      secure: this.options.cookieSecure,
+      path: this.options.cookiePath,
     });
   }
+
   private now(): number {
     return this.options.now ? this.options.now() : Math.floor(Date.now() / 1000);
-  }
-
-  private validateSessionId(sessionId: string): void {
-    if (!(sessionId.length === SESSION_ID_LENGTH && SESSION_ID_REGEX.test(sessionId))) {
-      throw new Error('Invalid session ID');
-    }
   }
 }

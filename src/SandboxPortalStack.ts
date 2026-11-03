@@ -109,7 +109,7 @@ export class SandboxPortalStack extends Stack {
       logGroup: homeLogGroup,
       environment: {
         LOG_LEVEL: props.configuration.logLevel ?? 'INFO',
-        SESSIONS_TABLE_NAME: sessionsTable.table.tableName,
+        SESSION_TABLE_NAME: sessionsTable.table.tableName,
       },
       bundling: {
         loader: { '.mustache': 'text' },
