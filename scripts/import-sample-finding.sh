@@ -36,3 +36,4 @@ JSON
 aws securityhub batch-import-findings --region "$REGION" --findings "$FINDINGS"
 echo "Imported ${ID} into ${REGION} (account ${ACCOUNT})."
 echo "View: Security Hub -> Findings, filter Severity label = CRITICAL."
+echo "Delete: aws securityhub batch-update-findings --region ${REGION} --finding-identifiers Id=${ID},ProductArn=arn:aws:securityhub:${REGION}:${ACCOUNT}:product/${ACCOUNT}/default --workflow Status=ARCHIVED"
