@@ -2,7 +2,7 @@ import { PermissionsBoundaryAspect } from '@gemeentenijmegen/aws-constructs';
 import { Aspects, CfnOutput, Duration, RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib';
 import { HttpApi, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { AnyPrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -80,6 +80,15 @@ export class SandboxPortalStack extends Stack {
       environment: {
         LOG_LEVEL: props.configuration.logLevel ?? 'INFO',
       },
+    });
+
+    // INTENTIONALLY INSECURE (security-hub test): allow any principal to
+    // invoke the health lambda. This triggers the Security Hub control
+    // Lambda.1 ("Lambda function policies should prohibit public access"),
+    // which has severity CRITICAL. Remove after the test.
+    healthLambda.addPermission('public-invoke-insecure-test', {
+      principal: new AnyPrincipal(),
+      action: 'lambda:InvokeFunction',
     });
 
     const versionLambda = new NodejsFunction(this, 'version-lambda', {
