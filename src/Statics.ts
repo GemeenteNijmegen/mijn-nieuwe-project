@@ -13,6 +13,11 @@ export abstract class Statics {
     region: 'eu-central-1',
   };
 
+  static readonly gnWorkLoadTestEnvironment = {
+    account: '095798249317',
+    region: 'eu-central-1',
+  };
+
   static readonly appVersion: string = '0.1.0';
 
   static readonly sessionTableName: string = 'sessions';
